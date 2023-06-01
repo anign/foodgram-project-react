@@ -19,8 +19,7 @@ from .permissions import (CurrentUserPermission,
 from .serializers import (CustomUserCreateSerializer, CustomUserSerializer,
                           FavoriteSerializer, FollowSerializer,
                           IngredientSerializer, RecipeSerializer,
-                          RecipeWriteSerializer, ShoppingCartSerializer,
-                          TagSerializer)
+                          ShoppingCartSerializer, TagSerializer, RecipeWriteSerializer)
 
 
 class UsersViewSet(UserViewSet):
