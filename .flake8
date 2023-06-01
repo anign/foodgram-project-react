@@ -1,0 +1,8 @@
+[flake8]
+exclude =
+    tests/,
+    */migrations/,
+    venv/,
+    env/,
+    settings.py,
+    manage.py
