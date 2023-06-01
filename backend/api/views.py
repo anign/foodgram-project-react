@@ -240,7 +240,7 @@ class ShoppingListDownload(APIView):
         )
         return self._create_shopping_list(self.get_queryset(), response)
 
-    def _create_shopping_list(self, queryset, response):
+    def download_shopping_cart(self, queryset, response):
         ingredients_and_amount = {}
         response.write('Список продуктов:\n')
         for item in queryset:
