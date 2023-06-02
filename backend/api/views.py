@@ -7,7 +7,7 @@ from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -115,7 +115,7 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (
-        ReadOnlyPermission | IsAuthorOrAdminOrModerOrReadOnly,
+        IsAuthorOrAdminOrModerOrReadOnly,
     )
     pagination_class = LimitPagination
     filter_backends = (DjangoFilterBackend,)
