@@ -20,7 +20,7 @@ from .serializers import (
     RecipeShortSerializer, RecipeWriteSerializer,
     TagSerializer
 )
-from .utils import ingredients_export, favorite_shopping_cart
+from .utils import ingredients_export
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
@@ -57,16 +57,20 @@ class RecipeViewSet(ModelViewSet):
         methods=['post', 'delete'],
         permission_classes=[IsAuthenticated]
     )
-    @action(detail=True, methods=['post', 'delete'],
-            permission_classes=(IsAuthenticated,))
-    def favorite(self, request, **kwargs):
-        return favorite_shopping_cart(self, request, Favourite, **kwargs)
+    def favorite(self, request, pk):
+        if request.method == 'POST':
+            return self.__add_to(Favourite, request.user, pk)
+        return self.__delete_from(Favourite, request.user, pk)
 
-    @action(detail=True, methods=['post', 'delete'],
-            permission_classes=(IsAuthenticated,),
-            pagination_class=None)
-    def shopping_cart(self, request, **kwargs):
-        return favorite_shopping_cart(self, request, ShoppingCart, **kwargs)
+    @action(
+        detail=True,
+        methods=['post', 'delete'],
+        permission_classes=[IsAuthenticated]
+    )
+    def shopping_cart(self, request, pk):
+        if request.method == 'POST':
+            return self.__add_to(ShoppingCart, request.user, pk)
+        return self.__delete_from(ShoppingCart, request.user, pk)
 
     def __add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
