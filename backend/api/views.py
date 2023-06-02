@@ -1,26 +1,25 @@
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from foodgram.settings import BUYING_LIST_NAME
 from recipes.filters import IngredientSearchFilter, RecipesFilter
 from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
 from users.models import Follow, User
 
 from .paginators import LimitPagination
-from .permissions import (CurrentUserPermission,
-                          IsAuthorOrAdminOrModerOrReadOnly)
+from .permissions import IsAuthorOrAdminOrModerOrReadOnly, ReadOnlyPermission
 from .serializers import (CustomUserCreateSerializer, CustomUserSerializer,
-                          FavoriteSerializer, FollowSerializer,
-                          IngredientSerializer, RecipeSerializer,
-                          RecipeWriteSerializer, ShoppingCartSerializer,
+                          FollowSerializer, IngredientSerializer,
+                          RecipeCreateSerializer, RecipeReadSerializer,
                           TagSerializer)
+from .utils import favorite_shopping_cart
 
 
 class UsersViewSet(UserViewSet):
@@ -112,150 +111,49 @@ class IngredientViewSet(viewsets.ModelViewSet):
     search_fields = ('^name',)
 
 
-class RecipeViewSet(ModelViewSet):
+class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
-    permission_classes = (
-        CurrentUserPermission | IsAuthorOrAdminOrModerOrReadOnly,
-    )
     pagination_class = LimitPagination
-    filter_backends = (DjangoFilterBackend,)
+    permission_classes = (
+        ReadOnlyPermission | IsAuthorOrAdminOrModerOrReadOnly,
+    )
+    filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipesFilter
+    http_method_names = ['get', 'post', 'patch', 'create', 'delete']
 
     def get_serializer_class(self):
-        if self.request.method in SAFE_METHODS:
-            return RecipeSerializer
-        return RecipeWriteSerializer
+        if self.action in ('list', 'retrieve'):
+            return RecipeReadSerializer
+        return RecipeCreateSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        serializer = RecipeSerializer(
-            instance=serializer.instance,
-            context={'request': self.request}
+    @action(detail=True, methods=['post', 'delete'],
+            permission_classes=(IsAuthenticated,))
+    def favorite(self, request, **kwargs):
+        return favorite_shopping_cart(self, request, Favorite, **kwargs)
+
+    @action(detail=True, methods=['post', 'delete'],
+            permission_classes=(IsAuthenticated,),
+            pagination_class=None)
+    def shopping_cart(self, request, **kwargs):
+        return favorite_shopping_cart(self, request, ShoppingCart, **kwargs)
+
+    @action(detail=False, methods=['get'],
+            permission_classes=(IsAuthenticated,))
+    def download_shopping_cart(self, request, **kwargs):
+        ingredients = (
+            IngredientRecipe.objects
+            .filter(recipe__shopping_recipe__user=request.user)
+            .values('ingredient')
+            .annotate(total_amount=Sum('amount'))
+            .values_list('ingredient__name', 'total_amount',
+                         'ingredient__measurement_unit')
         )
-        return Response(
-            serializer.data, status=status.HTTP_201_CREATED
+        file_list = []
+        [file_list.append(
+            '{} - {} {}.'.format(*ingredient)) for ingredient in ingredients]
+        file = HttpResponse('Cписок покупок:\n' + '\n'.join(file_list),
+                            content_type='text/plain')
+        file['Content-Disposition'] = (
+            f'attachment; filename={BUYING_LIST_NAME}'
         )
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance,
-            data=request.data,
-            partial=True
-        )
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        serializer = RecipeSerializer(
-            instance=serializer.instance,
-            context={'request': self.request}
-        )
-        return Response(
-            serializer.data, status=status.HTTP_200_OK
-        )
-
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
-
-
-class FavoriteViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
-):
-    permission_classes = [IsAuthenticated]
-    serializer_class = FavoriteSerializer
-
-    def get_queryset(self, obj):
-        user = self.context.get('request').user
-        return obj.favorite_recipe.filter(user=user)
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['recipe_id'] = self.kwargs.get('recipe_id')
-        return context
-
-    def create(self, request, *args, **kwargs):
-        recipe_id = self.kwargs.get('recipe_id')
-        favorite_recipe = get_object_or_404(Recipe, id=recipe_id)
-        Favorite.objects.create(
-            user=request.user,
-            favorite_recipe=favorite_recipe
-        )
-        serializer = FavoriteSerializer(favorite_recipe)
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, *args, **kwargs):
-        recipe_id = self.kwargs.get('recipe_id')
-        favorite_recipe = get_object_or_404(Recipe, id=recipe_id)
-        get_object_or_404(Favorite,
-                          user=request.user,
-                          favorite_recipe=favorite_recipe).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ShoppingCartViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
-):
-    permission_classes = [IsAuthenticated]
-    queryset = ShoppingCart.objects.all()
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['recipe_id'] = self.kwargs.get('recipe_id')
-        return context
-
-    def create(self, request, *args, **kwargs):
-        recipe_id = self.kwargs.get('recipe_id')
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        ShoppingCart.objects.create(
-            user=request.user,
-            recipe=recipe)
-        serializer = ShoppingCartSerializer(recipe)
-        return Response(data=serializer.data, status=status.HTTP_201_CREATED)
-
-    def delete(self, request, *args, **kwargs):
-        recipe_id = self.kwargs.get('recipe_id')
-        recipe = get_object_or_404(Recipe, id=recipe_id)
-        get_object_or_404(ShoppingCart,
-                          user=request.user,
-                          recipe=recipe).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ShoppingListDownload(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return self.request.user.shopping_cart.all()
-
-    def get(self, request):
-        response = HttpResponse(content_type='text/plain')
-        response['Content-Disposition'] = (
-            'attachment; filename="shopping_list.txt"'
-        )
-        return self._create_shopping_list(self.get_queryset(), response)
-
-    def download_shopping_cart(self, queryset, response):
-        ingredients_and_amount = {}
-        response.write('Список продуктов:\n')
-        for item in queryset:
-            ingredients_recipe = IngredientRecipe.objects.filter(
-                recipe=item.recipe
-            )
-            for row in ingredients_recipe:
-                ingredient = row.ingredient
-                amount = row.amount
-                if ingredient in ingredients_and_amount:
-                    ingredients_and_amount[ingredient] += amount
-                else:
-                    ingredients_and_amount[ingredient] = amount
-        for ingredient, amount in ingredients_and_amount.items():
-            response.write(f'\n{ingredient.name}')
-            response.write((f' ({ingredient.measurement_unit})'))
-            response.write(f' - {amount}')
-        return response
+        return file

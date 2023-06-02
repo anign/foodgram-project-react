@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = str(os.getenv('SECRET_KEY'))
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -151,3 +151,4 @@ MAX_COOKING_TIME = 32000
 MIN_AMOUNT = 1
 MAX_AMOUNT = 32000
 PAGE_LIMIT = 6
+BUYING_LIST_NAME = 'buying_list.txt'
