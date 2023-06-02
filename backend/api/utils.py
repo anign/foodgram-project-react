@@ -7,12 +7,14 @@ from rest_framework import status
 from rest_framework.response import Response
 from .serializers import RecipeShortSerializer
 
+
 def favorite_shopping_cart(request, model, **kwargs):
     recipe = get_object_or_404(Recipe, id=kwargs['pk'])
 
     if request.method == 'POST':
-        serializer = RecipeShortSerializer(recipe, data=request.data,
-                                      context={"request": request})
+        serializer = RecipeShortSerializer(
+            recipe, data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
         if not model.objects.filter(user=request.user,
                                     recipe=recipe).exists():
@@ -26,7 +28,6 @@ def favorite_shopping_cart(request, model, **kwargs):
                       recipe=recipe).delete()
     return Response({'detail': 'Рецепт успешно удален.'},
                     status=status.HTTP_204_NO_CONTENT)
-
 def ingredients_export(request, ingredients):
     user = request.user
     filename = f'{user.username}_shopping_list.txt'

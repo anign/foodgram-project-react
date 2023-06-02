@@ -62,7 +62,6 @@ class RecipeViewSet(ModelViewSet):
     def favorite(self, request, **kwargs):
         return favorite_shopping_cart(self, request, Favourite, **kwargs)
 
-
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=(IsAuthenticated,),
             pagination_class=None)
