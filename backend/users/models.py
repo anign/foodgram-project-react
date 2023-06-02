@@ -1,77 +1,51 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-from .validators import validate_username
+from django.db.models import UniqueConstraint
 
 
 class User(AbstractUser):
-    username = models.CharField(
-        verbose_name='Имя пользователя',
-        max_length=150,
-        unique=True,
-        validators=(validate_username,),
-    )
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = [
+        'username',
+        'first_name',
+        'last_name',
+    ]
     email = models.EmailField(
-        verbose_name='Адрес электронной почты',
         max_length=254,
         unique=True,
-    )
-
-    password = models.CharField(
-        max_length=150,
-        verbose_name='Пароль'
-    )
-    first_name = models.CharField(
-        verbose_name='Имя',
-        max_length=150,
-    )
-    last_name = models.CharField(
-        verbose_name='Фамилия',
-        max_length=150,
+        verbose_name='Электронная почта',
     )
 
     class Meta:
-        ordering = ['username']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['username', 'email'],
-                name='unique_username_email'
-            )
-        ]
+        ordering = ['id']
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
-    @property
-    def is_admin(self):
-        return self.is_superuser or self.access_level == 'admin'
-
-    def __int__(self):
-        return self.name
+    def __str__(self):
+        return self.username
 
 
-class Follow(models.Model):
+class Subscription(models.Model):
     user = models.ForeignKey(
         User,
+        related_name='subscriber',
         on_delete=models.CASCADE,
-        related_name='follower',
         verbose_name='Подписчик',
     )
     author = models.ForeignKey(
         User,
+        related_name='subscribing',
         on_delete=models.CASCADE,
-        related_name='following',
         verbose_name='Автор',
     )
 
     class Meta:
+        ordering = ['-id']
         constraints = [
-            models.UniqueConstraint(
+            UniqueConstraint(
                 fields=['user', 'author'],
-                name='unique_subscribe'
+                name='unique_subscription'
             )
         ]
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
-
-    def __str__(self):
-        return self.author
