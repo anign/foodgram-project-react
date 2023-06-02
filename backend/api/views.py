@@ -8,15 +8,18 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingCart, Tag)
-
+from recipes.models import (
+    Favourite, Ingredient, IngredientInRecipe,
+    Recipe, ShoppingCart, Tag
+)
 from .filters import IngredientFilter, RecipeFilter
 from .paginators import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from .serializers import (IngredientSerializer, RecipeReadSerializer,
-                          RecipeShortSerializer, RecipeWriteSerializer,
-                          TagSerializer)
+from .serializers import (
+    IngredientSerializer, RecipeReadSerializer,
+    RecipeShortSerializer, RecipeWriteSerializer,
+    TagSerializer
+)
 from .utils import ingredients_export
 
 
@@ -72,7 +75,7 @@ class RecipeViewSet(ModelViewSet):
     def __add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
-                {'errors': '������ ��� ��������!'},
+                {'errors': 'Рецепт уже добавлен!'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         recipe = get_object_or_404(Recipe, id=pk)
@@ -86,7 +89,7 @@ class RecipeViewSet(ModelViewSet):
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
-            {'errors': '������ ��� ������!'},
+            {'errors': 'Рецепт уже удален!'},
             status=status.HTTP_400_BAD_REQUEST
         )
 

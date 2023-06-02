@@ -8,8 +8,8 @@ def ingredients_export(self, request, ingredients):
     filename = f'{user.username}_shopping_list.txt'
     today = datetime.today()
     shopping_list = (
-        f'������ ������� ���: {user.get_full_name()}\n\n'
-        f'����: {today:%Y-%m-%d}\n\n'
+        f'Список покупок для: {user.get_full_name()}\n\n'
+        f'Дата: {today:%Y-%m-%d}\n\n'
     )
     shopping_list += '\n'.join([
         f'- {ingredient["ingredient__name"]} '
