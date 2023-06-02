@@ -8,6 +8,9 @@ from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
+                            ShoppingCart, Tag)
+
 from .filters import IngredientFilter, RecipeFilter
 from .paginators import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
@@ -15,8 +18,6 @@ from .serializers import (IngredientSerializer, RecipeReadSerializer,
                           RecipeShortSerializer, RecipeWriteSerializer,
                           TagSerializer)
 from .utils import ingredients_export
-from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingCart, Tag)
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
