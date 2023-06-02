@@ -14,7 +14,7 @@ from rest_framework.viewsets import ModelViewSet
 from users.models import Follow, User
 
 from .paginators import LimitPagination
-from .permissions import IsAuthorOrAdminOrModerOrReadOnly
+from .permissions import IsAuthorOrAdminOrModerOrReadOnly, ReadOnlyPermission
 from .serializers import (CustomUserCreateSerializer, CustomUserSerializer,
                           FavoriteSerializer, FollowSerializer,
                           IngredientSerializer, RecipeSerializer,
@@ -115,7 +115,7 @@ class RecipeViewSet(ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     permission_classes = (
-        IsAuthorOrAdminOrModerOrReadOnly,
+        ReadOnlyPermission | IsAuthorOrAdminOrModerOrReadOnly,
     )
     pagination_class = LimitPagination
     filter_backends = (DjangoFilterBackend,)

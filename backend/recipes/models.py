@@ -1,5 +1,6 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from foodgram.settings import (MAX_AMOUNT, MAX_COOKING_TIME, MIN_AMOUNT,
                                MIN_COOKING_TIME)
 from users.models import User
@@ -94,6 +95,12 @@ class Recipe(models.Model):
         ordering = ['-pub_date']
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['image', 'name', 'text'],
+                name='unique_recipe'
+            )
+        ]
 
     def __str__(self):
         return self.name
