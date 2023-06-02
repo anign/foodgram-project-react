@@ -28,6 +28,7 @@ def favorite_shopping_cart(request, model, **kwargs):
                       recipe=recipe).delete()
     return Response({'detail': 'Рецепт успешно удален.'},
                     status=status.HTTP_204_NO_CONTENT)
+
 def ingredients_export(request, ingredients):
     user = request.user
     filename = f'{user.username}_shopping_list.txt'
