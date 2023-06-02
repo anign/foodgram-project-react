@@ -1,14 +1,6 @@
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import (
-    Favourite,
-    Ingredient,
-    IngredientInRecipe,
-    Recipe,
-    ShoppingCart,
-    Tag,
-)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -27,7 +19,14 @@ from .serializers import (
     TagSerializer,
 )
 from .utils import ingredients_export
-
+from recipes.models import (
+    Favourite,
+    Ingredient,
+    IngredientInRecipe,
+    Recipe,
+    ShoppingCart,
+    Tag,
+)
 
 class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
@@ -81,7 +80,7 @@ class RecipeViewSet(ModelViewSet):
     def __add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
-                {'errors': 'Рецепт уже добавлен!'},
+                {'errors': 'пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         recipe = get_object_or_404(Recipe, id=pk)
@@ -95,7 +94,7 @@ class RecipeViewSet(ModelViewSet):
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
-            {'errors': 'Рецепт уже удален!'},
+            {'errors': 'пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ!'},
             status=status.HTTP_400_BAD_REQUEST
         )
 

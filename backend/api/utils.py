@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from django.shortcuts import HttpResponse
 
 
@@ -7,8 +8,8 @@ def ingredients_export(self, request, ingredients):
     filename = f'{user.username}_shopping_list.txt'
     today = datetime.today()
     shopping_list = (
-        f'Список покупок для: {user.get_full_name()}\n\n'
-        f'Дата: {today:%Y-%m-%d}\n\n'
+        f'пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ: {user.get_full_name()}\n\n'
+        f'пїЅпїЅпїЅпїЅ: {today:%Y-%m-%d}\n\n'
     )
     shopping_list += '\n'.join([
         f'- {ingredient["ingredient__name"]} '

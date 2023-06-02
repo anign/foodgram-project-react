@@ -12,7 +12,6 @@ from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import ModelSerializer
 from users.models import Subscription
 
-
 User = get_user_model()
 
 
@@ -61,12 +60,12 @@ class SubscribeSerializer(CustomUserSerializer):
         user = self.context.get('request').user
         if Subscription.objects.filter(author=author, user=user).exists():
             raise ValidationError(
-                detail='Вы уже подписались на этого автора!',
+                detail='пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ!',
                 code=status.HTTP_400_BAD_REQUEST
             )
         if user == author:
             raise ValidationError(
-                detail='Вы не можете подписаться на самого себя!',
+                detail='пїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ!',
                 code=status.HTTP_400_BAD_REQUEST
             )
         return data
@@ -175,18 +174,18 @@ class RecipeWriteSerializer(ModelSerializer):
         ingredients = value
         if not ingredients:
             raise ValidationError({
-                'ingredients': 'Нужен хотя бы один ингредиент!'
+                'ingredients': 'пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!'
             })
         ingredients_list = []
         for item in ingredients:
             ingredient = get_object_or_404(Ingredient, id=item['id'])
             if ingredient in ingredients_list:
                 raise ValidationError({
-                    'ingredients': 'Такой ингредиент уже есть!'
+                    'ingredients': 'пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ!'
                 })
             if int(item['amount']) <= 0:
                 raise ValidationError({
-                    'amount': 'Количество должно быть больше 0!'
+                    'amount': 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 0!'
                 })
             ingredients_list.append(ingredient)
         return value
@@ -195,13 +194,13 @@ class RecipeWriteSerializer(ModelSerializer):
         tags = value
         if not tags:
             raise ValidationError({
-                'tags': 'Выберете хотя бы один тег!'
+                'tags': 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ!'
             })
         tags_list = []
         for tag in tags:
             if tag in tags_list:
                 raise ValidationError({
-                    'tags': 'Теги должны быть уникальными!'
+                    'tags': 'пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!'
                 })
             tags_list.append(tag)
         return value
