@@ -1,8 +1,14 @@
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from recipes.models import (Favourite, Ingredient, IngredientInRecipe, Recipe,
-                            ShoppingCart, Tag)
+from recipes.models import (
+    Favourite,
+    Ingredient,
+    IngredientInRecipe,
+    Recipe,
+    ShoppingCart,
+    Tag,
+)
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -13,9 +19,13 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from .filters import IngredientFilter, RecipeFilter
 from .paginators import CustomPagination
 from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
-from .serializers import (IngredientSerializer, RecipeReadSerializer,
-                          RecipeShortSerializer, RecipeWriteSerializer,
-                          TagSerializer)
+from .serializers import (
+    IngredientSerializer,
+    RecipeReadSerializer,
+    RecipeShortSerializer,
+    RecipeWriteSerializer,
+    TagSerializer,
+)
 from .utils import ingredients_export
 
 
@@ -71,7 +81,7 @@ class RecipeViewSet(ModelViewSet):
     def __add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
             return Response(
-                {'errors': 'Π ΠµΡ†ΠµΠΏΡ‚ ΡƒΠ¶Πµ Π΄ΠΎΠ±Π°Π²Π»ΠµΠ½!'},
+                {'errors': 'Πεφεος σζε δξαΰβλεν!'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         recipe = get_object_or_404(Recipe, id=pk)
@@ -85,7 +95,7 @@ class RecipeViewSet(ModelViewSet):
             obj.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(
-            {'errors': 'Π ΠµΡ†ΠµΠΏΡ‚ ΡƒΠ¶Πµ ΡƒΠ΄Π°Π»ΠµΠ½!'},
+            {'errors': 'Πεφεος σζε σδΰλεν!'},
             status=status.HTTP_400_BAD_REQUEST
         )
 

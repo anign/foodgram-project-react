@@ -4,6 +4,7 @@ from users.views import SubscriptionsHandlingUserViewSet
 
 from .views import IngredientViewSet, RecipeViewSet, TagViewSet
 
+
 app_name = 'api'
 
 router = DefaultRouter()
