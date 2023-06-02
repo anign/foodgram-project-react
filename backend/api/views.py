@@ -7,14 +7,14 @@ from recipes.models import (Favorite, Ingredient, IngredientRecipe, Recipe,
                             ShoppingCart, Tag)
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from users.models import Follow, User
 
 from .paginators import LimitPagination
-from .permissions import IsAuthorOrAdminOrModerOrReadOnly, ReadOnlyPermission
+from .permissions import IsAuthorOrAdminOrModerOrReadOnly
 from .serializers import (CustomUserCreateSerializer, CustomUserSerializer,
                           FavoriteSerializer, FollowSerializer,
                           IngredientSerializer, RecipeSerializer,
