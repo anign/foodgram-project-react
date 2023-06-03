@@ -90,6 +90,7 @@ class RecipeViewSet(ModelViewSet):
         ).annotate(amount=Sum('amount'))
         return ingredients_export(self, request, ingredients)
 
+
 class FavouriteViewSet(
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
@@ -126,6 +127,7 @@ class FavouriteViewSet(
                           user=request.user,
                           favorite_recipe=favorite_recipe).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class ShoppingCartViewSet(
     mixins.CreateModelMixin,
