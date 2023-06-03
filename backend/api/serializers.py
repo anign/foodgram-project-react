@@ -1,10 +1,9 @@
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import F
-from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -171,25 +170,27 @@ class RecipeWriteSerializer(ModelSerializer):
             'cooking_time',
         )
 
-    def validate_ingredients(self, value):
-        ingredients = value
-        if not ingredients:
-            raise ValidationError({
-                'ingredients': 'Нужен хотя бы один ингредиент!'
-            })
-        ingredients_list = []
-        for item in ingredients:
-            ingredient = get_object_or_404(Ingredient, id=item['id'])
-            if ingredient in ingredients_list:
-                raise ValidationError({
-                    'ingredients': 'Такой ингредиент уже есть!'
-                })
-            if int(item['amount']) <= 0:
-                raise ValidationError({
-                    'amount': 'Количество должно быть больше 0!'
-                })
-            ingredients_list.append(ingredient)
-        return value
+    def validate(self, obj):
+        for field in ['name', 'text', 'cooking_time']:
+            if not obj.get(field):
+                raise serializers.ValidationError(
+                    f'{field} - Обязательное поле.'
+                )
+        if not obj.get('tags'):
+            raise serializers.ValidationError(
+                'Нужно указать минимум 1 тег.'
+            )
+        if not obj.get('ingredients'):
+            raise serializers.ValidationError(
+                'Нужно указать минимум 1 ингредиент.'
+            )
+        inrgedient_id_list = [item['id'] for item in obj.get('ingredients')]
+        unique_ingredient_id_list = set(inrgedient_id_list)
+        if len(inrgedient_id_list) != len(unique_ingredient_id_list):
+            raise serializers.ValidationError(
+                'Ингредиенты должны быть уникальны.'
+            )
+        return obj
 
     def validate_tags(self, value):
         tags = value
