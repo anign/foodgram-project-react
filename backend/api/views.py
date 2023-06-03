@@ -1,7 +1,7 @@
 from django.db.models import Sum
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status
+from rest_framework import status, mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
@@ -18,9 +18,9 @@ from .permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from .serializers import (
     IngredientSerializer, RecipeReadSerializer,
     RecipeShortSerializer, RecipeWriteSerializer,
-    TagSerializer
+    TagSerializer, ShoppingCartSerializer, FavouritesSerializer
 )
-from .utils import ingredients_export, favorite_shopping_cart
+from .utils import ingredients_export
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
@@ -51,22 +51,6 @@ class RecipeViewSet(ModelViewSet):
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
         return RecipeWriteSerializer
-
-    @action(detail=True, methods=['post', 'delete'],
-            permission_classes=(IsAuthenticated,))
-    def favorite(self, request, **kwargs):
-        return favorite_shopping_cart(self, request, Favourite, **kwargs)
-
-    @action(
-        detail=True,
-        methods=['post', 'delete'],
-        permission_classes=[IsAuthenticated]
-    )
-    @action(detail=True, methods=['post', 'delete'],
-            permission_classes=(IsAuthenticated,),
-            pagination_class=None)
-    def shopping_cart(self, request, **kwargs):
-        return favorite_shopping_cart(self, request, ShoppingCart, **kwargs)
 
     def __add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
@@ -105,3 +89,69 @@ class RecipeViewSet(ModelViewSet):
             'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount'))
         return ingredients_export(self, request, ingredients)
+
+    class FavouriteViewSet(
+        mixins.CreateModelMixin,
+        mixins.DestroyModelMixin,
+        viewsets.GenericViewSet
+    ):
+        permission_classes = [IsAuthenticated]
+        serializer_class = FavouritesSerializer
+
+        def get_queryset(self, obj):
+            user = self.context.get('request').user
+            return obj.favorite_recipe.filter(user=user)
+
+        def get_serializer_context(self):
+            context = super().get_serializer_context()
+            context['recipe_id'] = self.kwargs.get('recipe_id')
+            return context
+
+        def create(self, request, *args, **kwargs):
+            recipe_id = self.kwargs.get('recipe_id')
+            favorite_recipe = get_object_or_404(Recipe, id=recipe_id)
+            Favourite.objects.create(
+                user=request.user,
+                favorite_recipe=favorite_recipe
+            )
+            serializer = FavouritesSerializer(favorite_recipe)
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+
+        def delete(self, request, *args, **kwargs):
+            recipe_id = self.kwargs.get('recipe_id')
+            favorite_recipe = get_object_or_404(Recipe, id=recipe_id)
+            get_object_or_404(Favourite,
+                              user=request.user,
+                              favorite_recipe=favorite_recipe).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    class ShoppingCartViewSet(
+        mixins.CreateModelMixin,
+        mixins.DestroyModelMixin,
+        viewsets.GenericViewSet
+    ):
+        permission_classes = [IsAuthenticated]
+        queryset = ShoppingCart.objects.all()
+
+        def get_serializer_context(self):
+            context = super().get_serializer_context()
+            context['recipe_id'] = self.kwargs.get('recipe_id')
+            return context
+
+        def create(self, request, *args, **kwargs):
+            recipe_id = self.kwargs.get('recipe_id')
+            recipe = get_object_or_404(Recipe, id=recipe_id)
+            ShoppingCart.objects.create(
+                user=request.user,
+                recipe=recipe)
+            serializer = ShoppingCartSerializer(recipe)
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+
+        def delete(self, request, *args, **kwargs):
+            recipe_id = self.kwargs.get('recipe_id')
+            recipe = get_object_or_404(Recipe, id=recipe_id)
+            get_object_or_404(ShoppingCart,
+                              user=request.user,
+                              recipe=recipe).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+

@@ -3,14 +3,15 @@ from django.db import transaction
 from django.db.models import F
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.serializers import ModelSerializer
 
 from users.models import Subscription
-from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
+from recipes.models import (
+    Ingredient, IngredientInRecipe, Recipe, Tag, Favourite, ShoppingCart
+)
 
 User = get_user_model()
 
@@ -83,19 +84,19 @@ class SubscribeSerializer(CustomUserSerializer):
         return serializer.data
 
 
-class IngredientSerializer(ModelSerializer):
+class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = '__all__'
 
 
-class TagSerializer(ModelSerializer):
+class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = '__all__'
 
 
-class RecipeReadSerializer(ModelSerializer):
+class RecipeReadSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, read_only=True)
     author = CustomUserSerializer(read_only=True)
     ingredients = SerializerMethodField()
@@ -140,7 +141,7 @@ class RecipeReadSerializer(ModelSerializer):
         return user.shopping_cart.filter(recipe=obj).exists()
 
 
-class IngredientInRecipeWriteSerializer(ModelSerializer):
+class IngredientInRecipeWriteSerializer(serializers.ModelSerializer):
     id = IntegerField(write_only=True)
 
     class Meta:
@@ -148,7 +149,7 @@ class IngredientInRecipeWriteSerializer(ModelSerializer):
         fields = ('id', 'amount')
 
 
-class RecipeWriteSerializer(ModelSerializer):
+class RecipeWriteSerializer(serializers.ModelSerializer):
     tags = PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
         many=True
@@ -252,7 +253,7 @@ class RecipeWriteSerializer(ModelSerializer):
         ).data
 
 
-class RecipeShortSerializer(ModelSerializer):
+class RecipeShortSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
 
     class Meta:
@@ -263,3 +264,63 @@ class RecipeShortSerializer(ModelSerializer):
             'image',
             'cooking_time'
         )
+
+
+class FavouritesSerializer(serializers.ModelSerializer):
+    name = serializers.ReadOnlyField(
+        source='favorite_recipe.name',
+        read_only=True
+    )
+    image = serializers.ImageField(
+        source='favorite_recipe.image',
+        read_only=True
+    )
+    cooking_time = serializers.IntegerField(
+        source='favorite_recipe.cooking_time',
+        read_only=True
+    )
+    id = serializers.PrimaryKeyRelatedField(
+        source='favorite_recipe.id',
+        read_only=True
+    )
+
+    class Meta:
+        model = Favourite
+        fields = ('id', 'name', 'image', 'coocking_time',)
+
+    def validate(self, recipe):
+        if recipe.favorite_recipe.exists():
+            raise serializers.ValidationError(
+                'Рецепт уже в избранном!'
+            )
+        return recipe
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(
+        source='recipe.name',
+        read_only=True
+    )
+    image = serializers.ImageField(
+        source='recipe.image',
+        read_only=True
+    )
+    cooking_time = serializers.IntegerField(
+        source='recipe.cooking_time',
+        read_only=True
+    )
+    id = serializers.PrimaryKeyRelatedField(
+        source='recipe.id',
+        read_only=True
+    )
+
+    class Meta:
+        model = ShoppingCart
+        fields = ('id', 'name', 'image', 'coocking_time')
+
+    def validate(self, recipe):
+        if recipe.in_shopping_cart.exists():
+            raise serializers.ValidationError(
+                'Ингредиент уже в списке покупок!'
+            )
+        return recipe
