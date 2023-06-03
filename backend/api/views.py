@@ -115,7 +115,9 @@ class RecipeViewSet(ModelViewSet):
                 favorite_recipe=favorite_recipe
             )
             serializer = FavouritesSerializer(favorite_recipe)
-            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                data=serializer.data, status=status.HTTP_201_CREATED
+            )
 
         def delete(self, request, *args, **kwargs):
             recipe_id = self.kwargs.get('recipe_id')
@@ -145,7 +147,9 @@ class RecipeViewSet(ModelViewSet):
                 user=request.user,
                 recipe=recipe)
             serializer = ShoppingCartSerializer(recipe)
-            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+            return Response(
+                data=serializer.data, status=status.HTTP_201_CREATED
+            )
 
         def delete(self, request, *args, **kwargs):
             recipe_id = self.kwargs.get('recipe_id')
@@ -154,4 +158,3 @@ class RecipeViewSet(ModelViewSet):
                               user=request.user,
                               recipe=recipe).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-
