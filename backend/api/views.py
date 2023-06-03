@@ -62,10 +62,11 @@ class RecipeViewSet(ModelViewSet):
         methods=['post', 'delete'],
         permission_classes=[IsAuthenticated]
     )
-    def shopping_cart(self, request, pk):
-        if request.method == 'POST':
-            return self.__add_to(ShoppingCart, request.user, pk)
-        return self.__delete_from(ShoppingCart, request.user, pk)
+    @action(detail=True, methods=['post', 'delete'],
+            permission_classes=(IsAuthenticated,),
+            pagination_class=None)
+    def shopping_cart(self, request, **kwargs):
+        return favorite_shopping_cart(self, request, ShoppingCart, **kwargs)
 
     def __add_to(self, model, user, pk):
         if model.objects.filter(user=user, recipe__id=pk).exists():
