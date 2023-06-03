@@ -4,15 +4,16 @@ from django.shortcuts import HttpResponse, get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 
-from .serializers import RecipeSerializer
+from .serializers import RecipeReadSerializer
 
 from recipes.models import Recipe
+
 
 def favorite_shopping_cart(self, request, model, **kwargs):
     recipe = get_object_or_404(Recipe, id=kwargs['pk'])
 
     if request.method == 'POST':
-        serializer = RecipeSerializer(recipe, data=request.data,
+        serializer = RecipeReadSerializer(recipe, data=request.data,
                                       context={"request": request})
         serializer.is_valid(raise_exception=True)
         if not model.objects.filter(user=request.user,
@@ -27,6 +28,7 @@ def favorite_shopping_cart(self, request, model, **kwargs):
                       recipe=recipe).delete()
     return Response({'detail': 'Рецепт успешно удален.'},
                     status=status.HTTP_204_NO_CONTENT)
+
 
 def ingredients_export(self, request, ingredients):
     user = request.user

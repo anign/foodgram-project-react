@@ -263,13 +263,3 @@ class RecipeShortSerializer(ModelSerializer):
             'image',
             'cooking_time'
         )
-
-class RecipeSerializer(ModelSerializer):
-    image = Base64ImageField(read_only=True)
-    name = ReadOnlyField()
-    cooking_time = ReadOnlyField()
-
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name',
-                  'image', 'cooking_time')
