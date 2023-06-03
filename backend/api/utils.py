@@ -3,7 +3,7 @@ from datetime import datetime
 from django.shortcuts import HttpResponse
 
 
-def ingredients_export(request, ingredients):
+def ingredients_export(self, request, ingredients):
     user = request.user
     filename = f'{user.username}_shopping_list.txt'
     today = datetime.today()
