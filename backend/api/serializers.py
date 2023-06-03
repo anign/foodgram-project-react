@@ -151,7 +151,7 @@ class IngredientInRecipeWriteSerializer(ModelSerializer):
 class RecipeWriteSerializer(ModelSerializer):
     tags = PrimaryKeyRelatedField(
         queryset=Tag.objects.all(),
-        many=True
+        many=False
     )
     author = CustomUserSerializer(read_only=True)
     ingredients = IngredientInRecipeWriteSerializer(many=True)
