@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import IntegerField, SerializerMethodField
 from rest_framework.relations import PrimaryKeyRelatedField
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, ReadOnlyField
 
 from users.models import Subscription
 from recipes.models import Ingredient, IngredientInRecipe, Recipe, Tag
@@ -263,3 +263,13 @@ class RecipeShortSerializer(ModelSerializer):
             'image',
             'cooking_time'
         )
+
+class RecipeSerializer(ModelSerializer):
+    image = Base64ImageField(read_only=True)
+    name = ReadOnlyField()
+    cooking_time = ReadOnlyField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name',
+                  'image', 'cooking_time')
