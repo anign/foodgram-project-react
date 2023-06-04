@@ -114,6 +114,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+    'PAGE_SIZE': 6,
 }
 
 DJOSER = {
@@ -129,6 +130,3 @@ DJOSER = {
     },
     'HIDE_USERS': False,
 }
-
-
-PAGE_LIMIT = 6
